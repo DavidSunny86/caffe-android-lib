@@ -1,21 +1,13 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-set -e
+set -eu
 
-if [ -z "$NDK_ROOT" ] && [ "$#" -eq 0 ]; then
-    echo "Either \$NDK_ROOT should be set or provided as argument"
-    echo "e.g., 'export NDK_ROOT=/path/to/ndk' or"
-    echo "      '${0} /path/to/ndk'"
-    exit 1
-else
-    NDK_ROOT="${1:-${NDK_ROOT}}"
-fi
+# shellcheck source=/dev/null
+. "$(dirname "$0")/../config.sh"
 
-WD=$(readlink -f "$(dirname "$0")/..")
-TOOLCHAIN_DIR=${WD}/toolchains
-LEVELDB_ROOT=${WD}/leveldb
-INSTALL_DIR=${WD}/android_lib/leveldb
-N_JOBS=${N_JOBS:-4}
+TOOLCHAIN_DIR=${PROJECT_DIR}/toolchains
+LEVELDB_ROOT=${PROJECT_DIR}/leveldb
+INSTALL_DIR=${PROJECT_DIR}/android_lib/leveldb
 
 if [ "${ANDROID_ABI}" = "armeabi-v7a-hard-softfp with NEON" ]; then
     TOOLCHAIN_DIR=$TOOLCHAIN_DIR/armeabi-v7a
@@ -28,12 +20,12 @@ elif [ "${ANDROID_ABI}" = "x86"  ]; then
 elif [ "${ANDROID_ABI}" = "x86_64"  ]; then
     TOOLCHAIN_DIR=$TOOLCHAIN_DIR/x86_64
 else
-    echo "Error: not support $0 for ABI: ${ANDROID_ABI}"
+    echo "Error: $0 is not supported for ABI: ${ANDROID_ABI}"
     exit 1
 fi
 
 if [ ! -d "$TOOLCHAIN_DIR" ]; then
-    "$WD/scripts/make-toolchain.sh"
+    "$PROJECT_DIR/scripts/make-toolchain.sh"
 fi
 
 cd "${LEVELDB_ROOT}"
@@ -50,4 +42,4 @@ mkdir -p "${INSTALL_DIR}/lib"
 cp -r include/ "${INSTALL_DIR}"
 cp out-static/libleveldb.a "${INSTALL_DIR}/lib"
 
-cd "${WD}"
+cd "${PROJECT_DIR}"
